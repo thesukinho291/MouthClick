@@ -7,6 +7,8 @@ env/
 
 .env
 .env.*
+mouthclick_settings.json
+logs/
 
 .idea/
 .vscode/
@@ -26,4 +28,8 @@ Thumbs.db
 
 dist/
 build/
+release/
 *.egg-info/
+
+# Local design/reference exports
+Interface/

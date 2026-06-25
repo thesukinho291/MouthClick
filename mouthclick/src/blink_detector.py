@@ -79,12 +79,14 @@ class BlinkCalibrator:
         self.started_at = 0.0
         self.samples = []
         self.message = "nao calibrado (limite padrao)"
+        self.completed = False
 
     def start(self, now):
         self.active = True
         self.started_at = now
         self.samples = []
         self.message = "olhe para a camera com olhos abertos"
+        self.completed = False
 
     def update(self, blink_detector, face_detected, ear_value, now):
         if not self.active:
@@ -111,3 +113,11 @@ class BlinkCalibrator:
         open_eye_average = sum(self.samples) / len(self.samples)
         blink_detector.blink_threshold = open_eye_average * CALIBRATION_THRESHOLD_FACTOR
         self.message = f"ok: media {open_eye_average:.2f}, limite {blink_detector.blink_threshold:.2f}"
+        self.completed = True
+
+    def consume_completed(self):
+        if not self.completed:
+            return False
+
+        self.completed = False
+        return True

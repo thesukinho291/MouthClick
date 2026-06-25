@@ -4,15 +4,17 @@ from .config import (
     REAL_CLICK_COOLDOWN_SECONDS,
     REAL_CLICK_FEEDBACK_SECONDS,
     REAL_MOUSE_PAUSE_SECONDS,
-    REAL_MOUSE_MAX_STEP_PIXELS,
+    REAL_MOUSE_BASE_MAX_STEP_PIXELS,
     REAL_MOUSE_SCREEN_MARGIN,
 )
 from .visual_cursor import clamp
 
 try:
     import pyautogui
-except ImportError:
+    PYAUTOGUI_IMPORT_ERROR = None
+except Exception as error:
     pyautogui = None
+    PYAUTOGUI_IMPORT_ERROR = error
 
 
 class MouseController:
@@ -36,7 +38,7 @@ class MouseController:
             return
 
         if not self.is_available():
-            self.disable("PyAutoGUI nao instalado")
+            self.disable("PyAutoGUI indisponivel")
             return
 
         self.enabled = True
@@ -48,7 +50,7 @@ class MouseController:
         self.message = message
         self.last_position = None
 
-    def limit_step(self, target_x, target_y):
+    def limit_step(self, target_x, target_y, sensitivity_x):
         if self.last_position is None:
             return target_x, target_y
 
@@ -56,14 +58,15 @@ class MouseController:
         delta_x = target_x - last_x
         delta_y = target_y - last_y
         distance = (delta_x**2 + delta_y**2) ** 0.5
+        max_step = REAL_MOUSE_BASE_MAX_STEP_PIXELS * max(1.0, sensitivity_x / 2.0)
 
-        if distance <= REAL_MOUSE_MAX_STEP_PIXELS:
+        if distance <= max_step:
             return target_x, target_y
 
-        scale = REAL_MOUSE_MAX_STEP_PIXELS / distance
+        scale = max_step / distance
         return int(last_x + delta_x * scale), int(last_y + delta_y * scale)
 
-    def move_from_visual_position(self, cursor_position, face_detected, has_nose_reference, detection_quality_good):
+    def move_from_visual_position(self, cursor_position, face_detected, has_nose_reference, detection_quality_good, sensitivity_x=2.0):
         if not self.enabled:
             return
 
@@ -75,10 +78,6 @@ class MouseController:
             self.message = "pausado: sem referencia"
             return
 
-        if not detection_quality_good:
-            self.message = "pausado: qualidade instavel"
-            return
-
         try:
             screen_width, screen_height = pyautogui.size()
             cursor_x, cursor_y = cursor_position
@@ -86,12 +85,16 @@ class MouseController:
             target_y = (cursor_y / CONTROL_AREA_HEIGHT) * screen_height
             target_x = int(clamp(target_x, REAL_MOUSE_SCREEN_MARGIN, screen_width - REAL_MOUSE_SCREEN_MARGIN - 1))
             target_y = int(clamp(target_y, REAL_MOUSE_SCREEN_MARGIN, screen_height - REAL_MOUSE_SCREEN_MARGIN - 1))
-            target_x, target_y = self.limit_step(target_x, target_y)
+            target_x, target_y = self.limit_step(target_x, target_y, sensitivity_x)
             pyautogui.moveTo(target_x, target_y, duration=0)
             self.last_position = (target_x, target_y)
             self.message = "ativado"
         except Exception as error:
             self.disable(f"erro ao mover: {error}")
+
+    def hold_movement(self, message):
+        if self.enabled:
+            self.message = message
 
     def real_click_cooldown_remaining(self, now):
         elapsed = now - self.last_real_click_at
@@ -102,6 +105,8 @@ class MouseController:
 
     def real_click_block_reason(self, safety_state, face_detected, has_nose_reference, detection_quality_good, now):
         if not self.is_available():
+            if PYAUTOGUI_IMPORT_ERROR is not None:
+                return f"PyAutoGUI indisponivel: {PYAUTOGUI_IMPORT_ERROR}"
             return "PyAutoGUI indisponivel"
         if not self.enabled:
             return "controle real desativado"

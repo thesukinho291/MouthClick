@@ -2,9 +2,13 @@ class UIState:
     def __init__(self):
         self.diagnostic_enabled = False
         self.button_regions = {}
+        self.exit_requested = False
 
     def toggle_diagnostic(self):
         self.diagnostic_enabled = not self.diagnostic_enabled
+
+    def request_exit(self):
+        self.exit_requested = True
 
     def set_button_regions(self, button_regions):
         self.button_regions = button_regions

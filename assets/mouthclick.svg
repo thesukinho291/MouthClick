@@ -1,0 +1,8 @@
+<svg width="256" height="256" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="MouthClick logo">
+  <rect width="256" height="256" rx="48" fill="#12161a"/>
+  <circle cx="128" cy="112" r="58" fill="none" stroke="#58d284" stroke-width="12"/>
+  <path d="M82 150c18 24 74 24 92 0" fill="none" stroke="#eef2f5" stroke-width="12" stroke-linecap="round"/>
+  <path d="M108 158c8 16 32 16 40 0" fill="#eb50e6"/>
+  <circle cx="128" cy="112" r="10" fill="#ffd600"/>
+  <path d="M128 122v24" stroke="#ffd600" stroke-width="8" stroke-linecap="round"/>
+</svg>
