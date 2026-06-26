@@ -1,298 +1,125 @@
 # MouthClick
 
-MouthClick e um prototipo de acessibilidade para Windows que controla o mouse usando a webcam.
+O MouthClick é um projeto que eu fiz para testar uma forma diferente de controlar o computador usando só a webcam.
 
-O movimento do cursor vem da ponta do nariz. O clique esquerdo pode ser acionado com um gesto de lingua. A ideia e permitir uma forma alternativa de interacao para pessoas que precisam ou preferem controlar o computador sem usar as maos.
+A ideia nasceu como um experimento de acessibilidade: usar o nariz para mover o mouse e usar um gesto com a língua para clicar. Eu comecei esse projeto chamando ele de BlinkClick, porque no começo o clique seria feito com piscadas. Depois de testar melhor, percebi que clicar com a língua fazia mais sentido, porque é um gesto mais intencional e evita cliques sem querer.
 
-O app roda localmente. Ele nao envia imagens, nao salva frames da camera e nao usa API externa.
+Por isso o nome mudou para MouthClick.
 
-## Estado atual
+Ainda considero o projeto um protótipo, mas ele já consegue mover o mouse real e fazer clique esquerdo real usando a câmera.
 
-O projeto ja possui:
+## O que ele faz
 
-- deteccao facial com MediaPipe Face Landmarker;
-- malha facial em tempo real com OpenCV;
-- controle do cursor pelo nariz;
-- clique esquerdo por gesto de lingua;
-- pausa automatica do cursor durante o gesto de lingua;
-- botao unico para bloquear/desbloquear controle real e clique real;
-- botao para sair do programa;
-- ajuste de sensibilidade na tela;
-- sensibilidade aplicada ao cursor visual e ao movimento real do mouse;
-- sensibilidade Y sempre 1 ponto acima da sensibilidade X;
-- recentralizacao do nariz;
-- calibracao direcional do nariz;
-- calibracao do gesto de lingua;
-- modo diagnostico;
-- configuracoes locais salvas;
-- log local de eventos, sem imagens;
-- testes unitarios;
-- workflow de CI;
-- script e spec para gerar executavel com PyInstaller.
+- Detecta o rosto pela webcam.
+- Usa a ponta do nariz para controlar o movimento do mouse.
+- Detecta um gesto com a língua para fazer o clique esquerdo.
+- Tem uma interface simples com botões para bloquear, centralizar e calibrar.
+- Permite ajustar a sensibilidade do movimento.
+- Pausa o movimento do mouse enquanto o gesto de clique está acontecendo.
+- Salva algumas configurações locais, como sensibilidade e calibração.
+- Processa tudo no próprio computador.
 
-## Seguranca
+## Por que eu fiz
 
-MouthClick pode mover e clicar com o mouse real. Ao abrir, ele tenta deixar o mouse real ativo para seguir a ideia principal do projeto. Use o botao `Bloquear mouse real` para pausar tudo rapidamente.
+Eu quis criar algo que pudesse servir como base para um sistema de acessibilidade mais completo. A ideia é que uma pessoa consiga usar o computador mesmo sem depender tanto do teclado ou do mouse tradicional.
 
-Protecoes principais:
+Também fiz esse projeto para aprender mais sobre visão computacional, MediaPipe, OpenCV e controle de mouse com Python.
 
-- O botao `Ativar/Bloquear mouse real` controla movimento real e clique real juntos.
-- O botao `Sair` encerra o app.
-- `ESC` continua existindo como emergencia para desativar o controle real.
-- PyAutoGUI `FAILSAFE` fica ativo.
-- O mouse nao se move sem rosto detectado.
-- O mouse nao se move sem referencia do nariz.
-- O mouse nao se move com deteccao instavel.
-- O mouse pausa enquanto a boca/lingua indica intencao de clique.
-- O clique real exige sistema desbloqueado, qualidade boa e gesto confirmado.
-- Ha cooldown entre cliques.
-- Nao existe clique direito, duplo clique, arrastar, scroll, `mouseDown()` ou `mouseUp()`.
+## Segurança e privacidade
 
-Privacidade:
+Como o MouthClick mexe no mouse real, eu tentei tomar alguns cuidados desde o começo:
 
-- a webcam e processada localmente;
-- nenhuma imagem e gravada;
-- nenhum dado e enviado para servidores;
-- nao ha chaves de API no projeto.
+- existe botão para bloquear e desbloquear o controle real;
+- existe botão para sair do programa;
+- o PyAutoGUI fica com failsafe ativo;
+- existe cooldown entre cliques;
+- o clique só acontece quando o rosto está detectado e o sistema está liberado;
+- o movimento pausa durante o gesto de clique;
+- não implementei clique direito, scroll, arrastar ou duplo clique;
+- a imagem da webcam não é salva;
+- nenhum dado é enviado para servidor;
+- nenhuma API externa é usada.
 
-## Requisitos
+Tudo é processado localmente.
 
-- Windows.
-- Python 3.11 ou superior.
-- Webcam funcionando.
-- Permissao de camera liberada no Windows.
-- Arquivo `models\face_landmarker.task` dentro do projeto.
+## Como rodar
 
-## Instalacao
-
-No PowerShell, dentro da pasta do projeto:
+Dentro da pasta do projeto:
 
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
-python -m pip install --upgrade pip
 pip install -r requirements.txt
-```
-
-Se o PowerShell bloquear a ativacao do ambiente virtual:
-
-```powershell
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
-.\.venv\Scripts\Activate.ps1
-```
-
-## Como executar
-
-Comando recomendado, dentro da pasta do projeto:
-
-```powershell
 python main.py
 ```
 
-Tambem da para abrir pelo arquivo:
+No Windows, também deixei um arquivo para abrir o programa mais fácil:
 
 ```text
 iniciar_mouthclick.bat
 ```
 
-Comando por modulo:
+## Como eu testo
+
+Normalmente eu testo assim:
+
+1. Abro o programa.
+2. Espero ele detectar meu rosto.
+3. Clico em `Centralizar nariz`.
+4. Ajusto a sensibilidade.
+5. Mexo a cabeça devagar para ver se o mouse acompanha.
+6. Coloco a língua para fora para testar o clique.
+7. Uso `Bloquear mouse real` quando quero parar o controle.
+
+Se o mouse não mexer, geralmente é porque as dependências foram instaladas em outro Python. Nesse caso, eu rodo:
 
 ```powershell
-python -m mouthclick
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
 ```
 
-Comando antigo, mantido por compatibilidade:
+## Estrutura do projeto
 
-```powershell
-python blinkclick\main.py
-```
-
-## Primeiro uso
-
-1. Execute o app.
-2. Fique de frente para a webcam.
-3. Espere o rosto ser detectado.
-4. Clique em `Centro` ou pressione `R`.
-5. Ajuste a sensibilidade com `-` e `+`.
-6. Calibre o nariz com `N`, se quiser um controle mais preciso.
-7. Calibre a lingua com `T`, se o clique estiver falhando ou sensivel demais.
-8. Se o app abrir bloqueado, clique em `Ativar mouse real`.
-9. Clique em `Bloquear mouse real` ou `Sair` para parar.
-
-## Controles da interface
-
-| Botao | Acao |
-| --- | --- |
-| `Ativar/Bloquear mouse real` | Bloquear ou liberar movimento real e clique real |
-| `Centralizar nariz` | Recentralizar a referencia do nariz |
-| `Calibrar nariz` | Iniciar/capturar calibracao direcional do nariz |
-| `Calibrar lingua` | Calibrar gesto de lingua |
-| `Modo diagnostico` | Mostrar ou ocultar valores tecnicos |
-| `-` | Diminuir sensibilidade |
-| `+` | Aumentar sensibilidade |
-| `Sair` | Encerrar o programa |
-
-O teclado fica apenas como emergencia e compatibilidade. O uso normal deve ser pelos botoes da interface.
-
-## Calibracao do nariz
-
-A calibracao do nariz melhora o mapeamento do movimento da cabeca para a tela.
-
-Pressione `N` para iniciar. Depois siga as mensagens na tela e pressione `N` em cada posicao:
-
-1. centro;
-2. esquerda;
-3. direita;
-4. cima;
-5. baixo.
-
-Quando a calibracao termina, ela e salva em `mouthclick_settings.json`. Esse arquivo e local e nao entra no Git.
-
-## Calibracao da lingua
-
-Pressione `T` para calibrar o gesto de clique.
-
-O app coleta duas fases:
-
-1. boca normal;
-2. lingua para fora.
-
-Depois disso, ele calcula limites personalizados de abertura da boca e cor da regiao da boca. A calibracao ajuda quando o clique fica sensivel demais ou dificil de acionar.
-
-## Configuracoes locais
-
-O app salva preferencias em:
-
-```text
-mouthclick_settings.json
-```
-
-Esse arquivo pode guardar:
-
-- sensibilidade;
-- modo diagnostico ligado/desligado;
-- limite de piscada;
-- limites calibrados da lingua;
-- calibracao direcional do nariz.
-
-Ele esta no `.gitignore` porque e uma configuracao da maquina local.
-
-## Logs
-
-Eventos simples sao gravados em:
-
-```text
-logs\mouthclick.log
-```
-
-O log registra eventos como inicio do app, bloqueio, desbloqueio, calibracao e encerramento. Ele nao salva imagem, video nem dados da webcam.
-
-## Estrutura
+O código principal fica na pasta:
 
 ```text
 mouthclick/
-  __init__.py
-  __main__.py
-  main.py
-  src/
-    app.py
-    blink_detector.py
-    config.py
-    cursor_calibration.py
-    detection_quality.py
-    drawing.py
-    event_log.py
-    face_landmarker.py
-    mouse_controller.py
-    nose_tracker.py
-    safety_state.py
-    settings.py
-    tongue_detector.py
-    ui_state.py
-    visual_cursor.py
-blinkclick/
-  __init__.py
-  main.py
-models/
-  face_landmarker.task
-tests/
-.github/workflows/ci.yml
 ```
 
-`blinkclick/` existe apenas como compatibilidade com o caminho antigo. O desenvolvimento principal fica em `mouthclick/`.
+A pasta `blinkclick/` ficou só por compatibilidade com o nome antigo do projeto.
+
+Arquivos principais:
+
+```text
+main.py                            entrada principal
+mouthclick/src/app.py              loop principal da webcam
+mouthclick/src/mouse_controller.py controle real do mouse
+mouthclick/src/tongue_detector.py  detecção do gesto de língua
+mouthclick/src/visual_cursor.py    movimento e sensibilidade
+mouthclick/src/drawing.py          interface desenhada com OpenCV
+```
 
 ## Testes
 
-Compilar os arquivos:
+Antes de subir alguma mudança, eu costumo rodar:
 
 ```powershell
-python -m py_compile mouthclick\main.py mouthclick\__main__.py blinkclick\main.py mouthclick\src\*.py
+.\.venv\Scripts\python.exe -m py_compile main.py mouthclick\main.py mouthclick\__main__.py blinkclick\main.py mouthclick\src\*.py
+.\.venv\Scripts\python.exe -m unittest discover -s tests
 ```
 
-Rodar testes:
+## O que ainda quero melhorar
 
-```powershell
-python -m unittest discover -s tests
-```
+O projeto ainda não está finalizado. Algumas coisas que quero melhorar:
 
-## Gerar executavel
+- deixar o rastreio do nariz mais estável;
+- melhorar a calibração da língua;
+- testar em câmeras diferentes;
+- deixar a interface mais bonita e mais confortável de usar;
+- gerar um executável para Windows;
+- testar em outros computadores.
 
-Instale as dependencias de desenvolvimento e rode:
+## Licença
 
-```powershell
-.\build_exe.ps1
-```
+O código está sob licença MIT.
 
-O script usa PyInstaller e inclui o modelo `models\face_landmarker.task` no build.
-
-## Problemas comuns
-
-### A camera nao abre
-
-- Feche outros apps que usam webcam.
-- Confira as permissoes de camera do Windows.
-- Teste a camera em outro aplicativo.
-
-### O cursor nao se move
-
-- Confira se o sistema esta desbloqueado.
-- Pressione `R` ou clique em `Centro`.
-- Espere a qualidade ficar boa.
-- Diminua a sensibilidade se houver muita tremedeira.
-- Se a lingua ou boca estiverem no gesto de clique, o cursor pausa de proposito.
-
-### O cursor fica solto ou tremendo
-
-- Diminua a sensibilidade com `-`.
-- Pressione `R` ou clique em `Centro`.
-- Use a calibracao do nariz com `N`.
-- Melhore a iluminacao e evite movimentos bruscos.
-- Durante o gesto de lingua, o cursor deve ficar parado no ultimo ponto estavel.
-
-### O clique nao acontece
-
-- Confirme se o sistema esta desbloqueado.
-- Ative o diagnostico com `D` e veja o motivo de bloqueio.
-- Calibre a lingua com `T`.
-- Melhore a iluminacao.
-- Aguarde o cooldown terminar.
-
-### O clique acontece facil demais
-
-- Calibre a lingua com `T`.
-- Evite sombras fortes na boca.
-- Use o app com iluminacao frontal.
-
-## Limitacoes
-
-- A deteccao de lingua ainda e heuristica.
-- Iluminacao ruim pode afetar boca, nariz e malha facial.
-- Cameras de baixa resolucao podem gerar instabilidade.
-- O projeto ainda nao tem instalador assinado.
-- O executavel ainda precisa ser testado em maquinas diferentes.
-
-## Licenca
-
-O codigo do MouthClick esta sob licenca MIT. Veja `LICENSE`.
-
-O modelo `models/face_landmarker.task` e um ativo de terceiros usado pelo MediaPipe. Veja `NOTICE.md`.
+O arquivo `models/face_landmarker.task` é usado pelo MediaPipe. Mais detalhes estão em `NOTICE.md`.
